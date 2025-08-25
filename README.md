@@ -86,10 +86,19 @@ Considering the nature of this project, it is highly recommended to run it in a 
 
 **Important**: This tool makes no attempt at hiding itself. If you target protected games, the anti-cheat might flag this as a cheat and ban you after a while. Use a `Virtual Environment` !
 
+## Contributing
+
+Contributions are welcome! If you have suggestions for improvements or encounter any issues, please feel free to open an issue or submit a pull request.
+
 ## Donation links
+
 Anything is super helpful! Anything donated helps me keep developing this program and others!
 - https://www.paypal.com/paypalme/lifeline42
-- https://cash.app/$Mastercodeon3142
+- https://cash.app/$codoen314
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](https://github.com/mastercodeon31415/KsDumper-11/blob/main/LICENSE) file for details. 
 
 ## References
 - https://github.com/EquiFox/KsDumper
