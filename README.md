@@ -1,5 +1,5 @@
 # KsDumper-11
-https://github.com/mastercodeon314/KsDumper-11/assets/78676320/9452970c-27cf-44df-b091-0d18a07937e5
+https://github.com/user-attachments/assets/7558d492-859a-429b-b51e-285cae623c91
 
 ## Whats new v1.3.4
 + Added new feature Anti Anti Debugging Tools Detection
@@ -20,7 +20,7 @@ https://github.com/mastercodeon314/KsDumper-11/assets/78676320/9452970c-27cf-44d
 + Provider selction window now has a button to reset or wipe provider settings.
 	This means that all the providers will be reset to needing to be tested, and the default provider will be reset.
 + Fixed a bug in the provider selection window that would prevent it from being closed when opened from the main Dumper window.
-![image](https://github.com/mastercodeon314/KsDumper-11/assets/78676320/9ffeb3a7-86c6-40ef-95f7-cd140b20143d)
+![image](https://github.com/user-attachments/assets/c9f3fd50-4438-4b96-beba-e5fbd82108e1)
 
 ## Whats new v1.3.1
 + Updated KDU to v1.4.0! Provider count is now 44
@@ -33,7 +33,7 @@ https://github.com/mastercodeon314/KsDumper-11/assets/78676320/9452970c-27cf-44d
 + Providers list and selected default provider are now saved as JSON files!
 + Updated to .NET Framework v4.8
 
-![KsDumper v1.3 Provider Selector window](https://github.com/mastercodeon314/KsDumper-11/assets/78676320/c683b753-774b-49f0-81ca-76ed2f4dd09b)
+![KsDumper v1.3 Provider Selector window](https://github.com/user-attachments/assets/391bcbf0-4255-4c7a-8cd9-3abb08da34f0)
 
 ## Whats new v1.2
 + KsDumper will now try and start the driver using the default kdu exploit provider #1 (RTCore64.sys)
@@ -59,7 +59,7 @@ https://discord.gg/6kfWU3Ckya
 - ^ This can be defeated by stripping pe headers. Once pe headers are stripped, it cant dump.
 - Works on protected system processes & processes with stripped handles (anti-cheats)
 - Works on Windows 11, it doesnt crash anymore!
-![Canary Channel Insider Build Win 11 Ksdumper](https://github.com/mastercodeon314/KsDumper-11/assets/78676320/12b05290-8856-48c6-ae03-90733c8db392)
+![Canary Channel Insider Build Win 11 Ksdumper](https://github.com/user-attachments/assets/8c386012-5cbe-43b6-8dc4-8de5e74f48d7)
 
 **Note**: Import table isn't rebuilt.
 
