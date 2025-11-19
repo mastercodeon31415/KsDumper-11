@@ -40,12 +40,6 @@ NTSTATUS CloseDispatch(_In_ PDEVICE_OBJECT DeviceObject, _Inout_ PIRP Irp)
 	return Irp->IoStatus.Status;
 }
 
-//NTSTATUS Unload(IN PDRIVER_OBJECT DriverObject)
-//{
-//	IoDeleteSymbolicLink(&symLink);
-//	IoDeleteDevice(DriverObject->DeviceObject);
-//}
-
 NTSTATUS Unload(IN PDRIVER_OBJECT DriverObject)
 {
 	IoDeleteSymbolicLink(&symLink);
@@ -68,7 +62,7 @@ NTSTATUS IoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 			PKERNEL_COPY_MEMORY_OPERATION request = (PKERNEL_COPY_MEMORY_OPERATION)Irp->AssociatedIrp.SystemBuffer;
 			PEPROCESS targetProcess;
 
-			if (NT_SUCCESS(PsLookupProcessByProcessId(request->targetProcessId, &targetProcess)))
+			if (NT_SUCCESS(PsLookupProcessByProcessId((HANDLE)(ULONG_PTR)request->targetProcessId, &targetProcess)))
 			{
 				CopyVirtualMemory(targetProcess, request->targetAddress, request->bufferAddress, request->bufferSize);
 				ObDereferenceObject(targetProcess);
@@ -101,6 +95,23 @@ NTSTATUS IoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 			bytesIO = 0;
 		}
 	}
+	else if (controlCode == IO_GET_PROCESS_MODULES)
+	{
+		if (stack->Parameters.DeviceIoControl.InputBufferLength == sizeof(KERNEL_GET_MODULES_OPERATION))
+		{
+			PKERNEL_GET_MODULES_OPERATION request = (PKERNEL_GET_MODULES_OPERATION)Irp->AssociatedIrp.SystemBuffer;
+
+			// Execute the module walking logic defined in ProcessLister.c
+			status = GetProcessModules(request->targetProcessId, request->bufferAddress, request->bufferSize, &request->moduleCount);
+
+			bytesIO = sizeof(KERNEL_GET_MODULES_OPERATION);
+		}
+		else
+		{
+			status = STATUS_INFO_LENGTH_MISMATCH;
+			bytesIO = 0;
+		}
+	}
 	else if (controlCode == IO_UNLOAD_DRIVER)
 	{
 		Unload(NULL);
@@ -123,7 +134,7 @@ NTSTATUS IoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 NTSTATUS DriverInitialize(_In_ PDRIVER_OBJECT DriverObject, _In_ PUNICODE_STRING RegistryPath)
 {
 	NTSTATUS status;
-	
+
 
 	UNREFERENCED_PARAMETER(RegistryPath);
 
@@ -156,8 +167,6 @@ NTSTATUS DriverInitialize(_In_ PDRIVER_OBJECT DriverObject, _In_ PUNICODE_STRING
 
 	return status;
 }
-
-
 
 NTSTATUS DriverEntry(_In_ PDRIVER_OBJECT DriverObject, _In_ PUNICODE_STRING RegistryPath)
 {

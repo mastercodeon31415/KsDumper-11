@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -8,8 +9,7 @@ namespace KsDumper11.PE
     {
         public PEType Type { get; protected set; }
 
-        public PESection[] Sections { get; protected set; }
-
+        public List<PESection> Sections { get; protected set; }
 
         public abstract int GetFirstSectionHeaderOffset();
 
@@ -18,6 +18,11 @@ namespace KsDumper11.PE
         public abstract void FixPEHeader();
 
         public abstract void SaveToDisk(string fileName);
+
+        // New methods for IAT Reconstruction
+        public abstract uint GetNextSectionRva();
+        public abstract void AddSection(string name, byte[] content, uint characteristics);
+        public abstract void SetDataDirectory(uint index, uint rva, uint size);
 
         protected void AppendSections(BinaryWriter writer)
         {
@@ -52,7 +57,7 @@ namespace KsDumper11.PE
 
         protected void OrderSectionsBy(Func<PESection, uint> orderFunction)
         {
-            Sections = Sections.OrderBy(orderFunction).ToArray();
+            Sections = Sections.OrderBy(orderFunction).ToList();
         }
 
         public enum PEType

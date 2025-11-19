@@ -1,4 +1,5 @@
-﻿using System;
+﻿// Relative Path: DumperForm.cs
+using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
@@ -233,12 +234,9 @@ namespace KsDumper11
 
         private void processList_ColumnWidthChanging(object sender, ColumnWidthChangingEventArgs e)
         {
-            Console.Write("Column Resizing");
             e.NewWidth = this.processList.Columns[e.ColumnIndex].Width;
             e.Cancel = true;
         }
-
-
 
         private void LoadProcessList()
         {
@@ -367,6 +365,13 @@ namespace KsDumper11
         {
             ProcessSummary targetProcess = this.processList.SelectedItems[0].Tag as ProcessSummary;
             this.DumpProcess(targetProcess);
+        }
+
+        private void viewModulesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ProcessSummary targetProcess = this.processList.SelectedItems[0].Tag as ProcessSummary;
+            var modForm = new ModuleForm(this.driver, this.dumper, targetProcess);
+            modForm.Show();
         }
 
         private void Logger_OnLog(string message)

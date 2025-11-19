@@ -1,5 +1,7 @@
+// Relative Path: Driver\ProcessLister.h
 #pragma once
 #include <ntddk.h>
+#include "UserModeBridge.h"
 
 #pragma pack(push, 1)
 typedef struct _PROCESS_SUMMARY
@@ -10,7 +12,8 @@ typedef struct _PROCESS_SUMMARY
 	UINT32 MainModuleImageSize;
 	PVOID MainModuleEntryPoint;
 	BOOLEAN WOW64;
-} PROCESS_SUMMARY, *PPROCESS_SUMMARY;
+	BOOLEAN IsDotNet; // New: .NET Detection Flag
+} PROCESS_SUMMARY, * PPROCESS_SUMMARY;
 #pragma pack(pop)
 
 typedef struct _SYSTEM_PROCESS_INFORMATION
@@ -48,9 +51,9 @@ typedef struct _SYSTEM_PROCESS_INFORMATION
 	LARGE_INTEGER ReadTransferCount;
 	LARGE_INTEGER WriteTransferCount;
 	LARGE_INTEGER OtherTransferCount;
-} SYSTEM_PROCESS_INFORMATION, *PSYSTEM_PROCESS_INFORMATION;
+} SYSTEM_PROCESS_INFORMATION, * PSYSTEM_PROCESS_INFORMATION;
 
-typedef struct _LDR_DATA_TABLE_ENTRY
+typedef struct _LDR_DATA_TABLE_ENTRY_PE
 {
 	LIST_ENTRY InLoadOrderLinks;
 	LIST_ENTRY InMemoryOrderLinks;
@@ -60,9 +63,9 @@ typedef struct _LDR_DATA_TABLE_ENTRY
 	ULONG SizeOfImage;
 	UNICODE_STRING FullDllName;
 	UNICODE_STRING BaseDllName;
-} LDR_DATA_TABLE_ENTRY, *PLDR_DATA_TABLE_ENTRY;
+} LDR_DATA_TABLE_ENTRY_PE, * PLDR_DATA_TABLE_ENTRY_PE;
 
-typedef struct _PEB_LDR_DATA
+typedef struct _PEB_LDR_DATA_PE
 {
 	ULONG Length;
 	BOOLEAN Initialized;
@@ -71,13 +74,13 @@ typedef struct _PEB_LDR_DATA
 	LIST_ENTRY InMemoryOrderModuleList;
 	LIST_ENTRY InInitializationOrderModuleList;
 	PVOID EntryInProgress;
-} PEB_LDR_DATA, *PPEB_LDR_DATA;
+} PEB_LDR_DATA_PE, * PPEB_LDR_DATA_PE;
 
-typedef struct _PEB64 {
+typedef struct _PEB64_PE {
 	CHAR Reserved[0x10];
 	PVOID ImageBaseAddress;
-	PPEB_LDR_DATA Ldr;
-} PEB64, *PPEB64;
+	PPEB_LDR_DATA_PE Ldr;
+} PEB64_PE, * PPEB64_PE;
 
 typedef struct _IMAGE_DOS_HEADER {
 	USHORT   e_magic;
@@ -99,7 +102,7 @@ typedef struct _IMAGE_DOS_HEADER {
 	USHORT   e_oeminfo;
 	USHORT   e_res2[10];
 	LONG   e_lfanew;
-} IMAGE_DOS_HEADER, *PIMAGE_DOS_HEADER;
+} IMAGE_DOS_HEADER, * PIMAGE_DOS_HEADER;
 
 typedef struct _PE_HEADER {
 	CHAR Signature[4];
@@ -111,7 +114,7 @@ typedef struct _PE_HEADER {
 	USHORT SizeOfOptionalHeader;
 	USHORT Characteristics;
 	USHORT Magic;
-} PE_HEADER, *PPE_HEADER;
+} PE_HEADER, * PPE_HEADER;
 
 #define PE_HEADER_MAGIC_OFFSET 0x18
 #define IMAGE_NT_OPTIONAL_HDR32_MAGIC 0x10b
@@ -121,3 +124,5 @@ typedef struct _PE_HEADER {
 								== IMAGE_NT_OPTIONAL_HDR32_MAGIC)
 
 NTSTATUS GetProcessList(PVOID listedProcessBuffer, INT32 bufferSize, PINT32 requiredBufferSize, PINT32 processCount);
+
+NTSTATUS GetProcessModules(INT32 targetProcessId, PVOID bufferAddress, INT32 bufferSize, PINT32 moduleCount);

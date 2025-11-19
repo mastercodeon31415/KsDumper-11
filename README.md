@@ -1,6 +1,14 @@
 # KsDumper-11
 https://github.com/user-attachments/assets/7558d492-859a-429b-b51e-285cae623c91
 
+## Whats new v1.3.5
++ **Manual Map Detection**: The driver now utilizes VAD-style memory scanning to detect executable memory regions not linked in the system loader. These appear as **Red** entries in the Module View.
++ **.NET & Architecture Detection**: Automatically detects if a process is running the .NET Runtime (CLR) and identifies the specific architecture. These processes appear as **Cyan** in the process list.
++ **Enhanced IAT Reconstruction**: Completely rewrote the Import Address Table reconstruction engine. It now parses exports directly from **memory** rather than disk. This allows for resolving imports from Manually Mapped DLLs and fixes version mismatch issues.
++ **Module Dumping**: You can now dump specific DLLs (including hidden manual maps) via the Module View.
++ **Driver Stability**: Fixed a critical Bad Pool Caller (0xC2) BSOD by implementing safe memory allocation tags and buffer resizing logic in the kernel.
++ **UI Updates**: Added columns for "Framework" (.NET/Native) in the main list and color-coding for special modules.
+
 ## Whats new v1.3.4
 + Added new feature Anti Anti Debugging Tools Detection
     + Randomized MainWindow Title, most Control Titles, and the exe file name during runtime
@@ -48,28 +56,80 @@ Please keep in mind that until others volunteer to help in development of this t
 https://discord.gg/6kfWU3Ckya
 
 ## Features
-- Selection of working kdu exploit providers.
-- Auto dumping of selected exe.
-- Unloading the KsDumper kernel driver is now supported! An option was added to unload on program exit, or system shutdown/restart.
-- Splash screen for when driver is being loaded
-- Auto Refresh (every 100ms)
-- Suspend, resume, kill process
-- Dump any process main module using a kernel driver (both x86 and x64)
-- Rebuild PE32/PE64 header and sections
-- ^ This can be defeated by stripping pe headers. Once pe headers are stripped, it cant dump.
-- Works on protected system processes & processes with stripped handles (anti-cheats)
-- Works on Windows 11, it doesnt crash anymore!
+- **Kernel-Mode Dumping**: Reads memory directly using `MmCopyVirtualMemory`, bypassing user-mode hooks.
+- **IAT Reconstruction**: Automatically repairs the Import Address Table using in-memory export parsing. Makes dumps executable!
+- **Manual Map Detection**: Identifies executable memory regions hidden from the system loader.
+- **.NET Support**: Detects CLR usage and specific architectures (x86/x64/AnyCpu).
+- **KDU Integration**: Selection of working kdu exploit providers to load unsigned drivers.
+- **Process Management**: Suspend, Resume, Kill processes from kernel.
+- **Module Enumeration**: View and dump specific DLLs (including hidden ones).
+- **Anti-Anti-Debug**: Randomized window titles and stealthy UI drawing.
+- **Driver Unload**: Option to unload the kernel driver on exit.
+- **PE Reconstruction**: Rebuilds PE32/PE64 headers and sections.
+- Works on protected system processes & processes with stripped handles (anti-cheats).
+- Works on Windows 11.
 ![Canary Channel Insider Build Win 11 Ksdumper](https://github.com/user-attachments/assets/8c386012-5cbe-43b6-8dc4-8de5e74f48d7)
 
-**Note**: Import table isn't rebuilt.
+## Usage Guide
 
-## Usage
-The old way of loading the unsigned ksDumper.sys kernel driver was to use the capcom exploit to map it, this got patched in windows 11.
-This one loads the driver with Kernel Driver Utility, or KDU for short. 
+### Prerequisites
+1.  **x64 Windows OS** (The driver is 64-bit only).
+2.  **Secure Boot Disabled** (Required for most KDU providers).
+3.  **Administrator Privileges** (Required to load drivers).
 
-Loading of the driver is handled by the Provider Selector now. Simply select a provider from the list, click Test Driver, and if it works, then you can click Set Default provider and it will use the selected provider to load the KsDumper driver with. 
+### Initial Setup (First Run)
+The old way of loading the driver (capcom exploit) is patched in Windows 11. This version uses KDU.
+1.  Run `KsDumper11.exe` as Administrator.
+2.  The **Provider Selector** window will appear.
+3.  Select a provider from the list (Provider #1 usually works for most).
+4.  Click **Test Driver**. If "Driver Loaded!" appears in Green, click **Set Default Provider**.
+5.  The main dumper window will open.
 
-**Note2**: Even though it can dump both x86 & x64 processes, this has to run on x64 Windows.
+### Dumping a Process
+1.  Locate your target process in the list.
+    *   **Cyan Text**: Indicates a .NET process.
+    *   **White Text**: Indicates a Native process.
+2.  Right-click the process and select **Dump Process**.
+3.  Check the logs at the bottom. You should see:
+    *   "Getting Module List for IAT Reconstruction..."
+    *   "IAT Reconstructed and New Section Added."
+4.  Save the file when prompted. The dump should be runnable.
+
+### Analyzing & Dumping Modules (Manual Maps)
+1.  Select a process in the list.
+2.  Right-click and select **View Modules**.
+3.  A new window will appear listing all loaded code:
+    *   **Red Text**: Manually Mapped regions (Hidden from normal tools).
+    *   **Cyan Text**: .NET Runtime modules.
+4.  Right-click any module (especially Red ones) and select **Dump Module** to save it to disk for analysis.
+
+## Building the Project
+If you wish to compile KsDumper 11 yourself, follow these steps carefully.
+
+### Requirements
+*   **Visual Studio 2019** with **WDK (Windows Driver Kit)** installed (Required for the Driver).
+*   **Visual Studio 2022** (Required for the Client App).
+*   **.NET Framework 4.8**.
+
+### Steps
+1.  **Build the Driver**:
+    *   Open `Driver\KsDumperDriver.sln` in **VS 2019**.
+    *   Select configuration **Release / x64**.
+    *   Build the solution. This produces `KsDumperDriver.sys`.
+2.  **Update Resources**:
+    *   Open `KsDumper11.sln` in **VS 2022**.
+    *   Go to `Project Properties -> Resources`.
+    *   Remove the old `KsDumperDriver` resource.
+    *   Add the new `KsDumperDriver.sys` you just built as a file resource and name it `KsDumperDriver`.
+3.  **Build the Client**:
+    *   Select configuration **Release / Any CPU** (or x64).
+    *   Build the solution.
+    *   The output folder will contain `KsDumper11.exe`. On the first run, it will extract `kdu.exe` and the driver automatically.
+
+## Known Issues and Limitations
+*   **Driver Unload Stability**: Unloading the driver relies on `ZwUnloadDriver`. If the KDU exploit left the kernel in an unstable state, unloading may fail or cause a BSOD.
+*   **Advanced Obfuscation**: While IAT reconstruction is robust, heavily virtualized packers (like VMProtect with import emulation) may still require manual fixups in a debugger.
+*   **Antivirus**: Because this tool exploits a vulnerable driver to load an unsigned rootkit, almost every Antivirus will flag `kdu.exe` or `KsDumperDriver.sys`. You must add an exclusion.
 
 ## Disclaimer
 The new kdu provider selector can and WILL crash windows if a bad provider is tested. As such, I have implimented functionality to allow KsDumper to be ran again after a crash, and it will mark the last tested provider as non-working. This way, users will be prevented from testing that provider again and less crashes should result from general usage of KsDumper 11.
@@ -108,8 +168,3 @@ This project is licensed under the MIT License - see the [LICENSE](https://githu
 - https://github.com/NtQuery/Scylla/
 - http://terminus.rewolf.pl/terminus/
 - https://www.unknowncheats.me/
-
-## Compile Yourself
-- Requires Visual Studio 2022 (must use 2019 for compiling the driver, and 2019 wdk)
-- Requires .NET 4.8
-- Window Driver Framework (WDK)

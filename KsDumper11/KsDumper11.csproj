@@ -49,7 +49,7 @@
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <OutputPath>bin\x86\Release\</OutputPath>
+    <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE;WIN64</DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
@@ -57,7 +57,7 @@
     <LangVersion>7.3</LangVersion>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <Prefer32Bit>true</Prefer32Bit>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
     <DebugSymbols>true</DebugSymbols>
@@ -104,6 +104,12 @@
     <Compile Include="JsonSettings.cs" />
     <Compile Include="JsonSettingsManager.cs" />
     <Compile Include="LabelDrawer.cs" />
+    <Compile Include="ModuleForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ModuleForm.Designer.cs">
+      <DependentUpon>ModuleForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="ProviderSelector.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -137,6 +143,9 @@
     <Compile Include="Trigger.Designer.cs">
       <DependentUpon>Trigger.cs</DependentUpon>
     </Compile>
+    <EmbeddedResource Include="ModuleForm.resx">
+      <DependentUpon>ModuleForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="ProviderSelector.resx">
       <DependentUpon>ProviderSelector.cs</DependentUpon>
     </EmbeddedResource>
@@ -156,7 +165,6 @@
     <None Include="app.manifest" />
     <None Include="Driver\KsDumperDriver.sys" />
     <None Include="Driver\ManualLoader.bat" />
-    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
