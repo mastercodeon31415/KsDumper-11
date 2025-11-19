@@ -159,7 +159,7 @@ Contributions are welcome! If you have suggestions for improvements or encounter
 Anything is super helpful! Anything donated helps me keep developing this program and others!
 - https://www.paypal.com/paypalme/lifeline42
 - https://cash.app/$codoen314
-- BTC: 
+- BTC: bc1qp8pay5qrg77kg2yyguvlwjxpnl8u0wl4r8hddp
 
 ## License
 
