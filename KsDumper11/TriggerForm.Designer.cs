@@ -50,7 +50,7 @@
             // 
             // appIcon1
             // 
-            this.appIcon1.AppIconImage = ((System.Drawing.Image)(resources.GetObject("appIcon1.AppIconImage")));
+            this.appIcon1.AppIconImage = global::KsDumper11.Properties.Resources.AppIcon;
             this.appIcon1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(33)))), ((int)(((byte)(33)))), ((int)(((byte)(33)))));
             this.appIcon1.DragForm = null;
             this.appIcon1.Image = ((System.Drawing.Image)(resources.GetObject("appIcon1.Image")));
@@ -101,6 +101,7 @@
             this.DoubleBuffered = true;
             this.ForeColor = System.Drawing.Color.Silver;
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "TriggerForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Load += new System.EventHandler(this.TriggerForm_Load);

@@ -28,13 +28,13 @@ namespace KsDumper11
             this.resumeProcessToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.killProcessToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.fileDumpBtn = new System.Windows.Forms.Button();
-            this.titleLbl = new DarkControls.Controls.TransparentLabel();
-            this.closeBtn = new DarkControls.Controls.WindowsDefaultTitleBarButton();
             this.refreshBtn = new System.Windows.Forms.Button();
-            this.autoRefreshCheckBox = new DarkControls.Controls.DarkCheckBox();
             this.hideSystemProcessBtn = new System.Windows.Forms.Button();
+            this.antiantiDebuggerToolsBox = new DarkControls.Controls.DarkCheckBox();
+            this.providerBtn = new DarkControls.Controls.DarkButton();
             this.closeDriverOnExitBox = new DarkControls.Controls.DarkCheckBox();
-            this.appIcon1 = new DarkControls.Controls.AppIcon();
+            this.autoRefreshCheckBox = new DarkControls.Controls.DarkCheckBox();
+            this.closeBtn = new DarkControls.Controls.WindowsDefaultTitleBarButton();
             this.processList = new KsDumper11.Utility.ProcessListView();
             this.PIDHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.NameHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -43,13 +43,11 @@ namespace KsDumper11
             this.EntryPointHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.ImageSizeHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.ImageTypeHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            // New Column Header
             this.FrameworkHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-
-            this.providerBtn = new DarkControls.Controls.DarkButton();
+            this.appIcon1 = new DarkControls.Controls.AppIcon();
+            this.titleLbl = new DarkControls.Controls.TransparentLabel();
             this.trigger1 = new KsDumper11.Trigger();
             this.debuggerTrigger = new KsDumper11.Trigger();
-            this.antiantiDebuggerToolsBox = new DarkControls.Controls.DarkCheckBox();
             this.groupBox1.SuspendLayout();
             this.contextMenuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.appIcon1)).BeginInit();
@@ -61,7 +59,7 @@ namespace KsDumper11
             this.groupBox1.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.groupBox1.Location = new System.Drawing.Point(12, 512);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(987, 222);
+            this.groupBox1.Size = new System.Drawing.Size(1064, 222);
             this.groupBox1.TabIndex = 5;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Logs";
@@ -92,53 +90,53 @@ namespace KsDumper11
             this.resumeProcessToolStripMenuItem,
             this.killProcessToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(181, 164);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(163, 142);
             this.contextMenuStrip1.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip1_Opening);
             // 
             // dumpMainModuleToolStripMenuItem
             // 
             this.dumpMainModuleToolStripMenuItem.Name = "dumpMainModuleToolStripMenuItem";
-            this.dumpMainModuleToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.dumpMainModuleToolStripMenuItem.Size = new System.Drawing.Size(162, 22);
             this.dumpMainModuleToolStripMenuItem.Text = "Dump Process";
             this.dumpMainModuleToolStripMenuItem.Click += new System.EventHandler(this.dumpMainModuleToolStripMenuItem_Click);
             // 
             // viewModulesToolStripMenuItem
             // 
             this.viewModulesToolStripMenuItem.Name = "viewModulesToolStripMenuItem";
-            this.viewModulesToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.viewModulesToolStripMenuItem.Size = new System.Drawing.Size(162, 22);
             this.viewModulesToolStripMenuItem.Text = "View Modules";
             this.viewModulesToolStripMenuItem.Click += new System.EventHandler(this.viewModulesToolStripMenuItem_Click);
             // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(177, 6);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(159, 6);
             // 
             // openInExplorerToolStripMenuItem
             // 
             this.openInExplorerToolStripMenuItem.Name = "openInExplorerToolStripMenuItem";
-            this.openInExplorerToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.openInExplorerToolStripMenuItem.Size = new System.Drawing.Size(162, 22);
             this.openInExplorerToolStripMenuItem.Text = "Open In Explorer";
             this.openInExplorerToolStripMenuItem.Click += new System.EventHandler(this.openInExplorerToolStripMenuItem_Click);
             // 
             // suspendProcessToolStripMenuItem
             // 
             this.suspendProcessToolStripMenuItem.Name = "suspendProcessToolStripMenuItem";
-            this.suspendProcessToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.suspendProcessToolStripMenuItem.Size = new System.Drawing.Size(162, 22);
             this.suspendProcessToolStripMenuItem.Text = "Suspend process";
             this.suspendProcessToolStripMenuItem.Click += new System.EventHandler(this.suspendProcessToolStripMenuItem_Click);
             // 
             // resumeProcessToolStripMenuItem
             // 
             this.resumeProcessToolStripMenuItem.Name = "resumeProcessToolStripMenuItem";
-            this.resumeProcessToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.resumeProcessToolStripMenuItem.Size = new System.Drawing.Size(162, 22);
             this.resumeProcessToolStripMenuItem.Text = "Resume process";
             this.resumeProcessToolStripMenuItem.Click += new System.EventHandler(this.resumeProcessToolStripMenuItem_Click);
             // 
             // killProcessToolStripMenuItem
             // 
             this.killProcessToolStripMenuItem.Name = "killProcessToolStripMenuItem";
-            this.killProcessToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.killProcessToolStripMenuItem.Size = new System.Drawing.Size(162, 22);
             this.killProcessToolStripMenuItem.Text = "Kill process";
             this.killProcessToolStripMenuItem.Click += new System.EventHandler(this.killProcessToolStripMenuItem_Click);
             // 
@@ -155,32 +153,6 @@ namespace KsDumper11
             this.fileDumpBtn.UseVisualStyleBackColor = false;
             this.fileDumpBtn.Click += new System.EventHandler(this.fileDumpBtn_Click);
             // 
-            // titleLbl
-            // 
-            this.titleLbl.AutoSize = true;
-            this.titleLbl.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.titleLbl.Location = new System.Drawing.Point(32, 7);
-            this.titleLbl.Name = "titleLbl";
-            this.titleLbl.Size = new System.Drawing.Size(106, 20);
-            this.titleLbl.TabIndex = 8;
-            this.titleLbl.Text = "KsDumper 11";
-            // 
-            // closeBtn
-            // 
-            this.closeBtn.ButtonType = DarkControls.Controls.WindowsDefaultTitleBarButton.Type.Close;
-            this.closeBtn.ClickColor = System.Drawing.Color.Red;
-            this.closeBtn.ClickIconColor = System.Drawing.Color.Black;
-            this.closeBtn.HoverColor = System.Drawing.Color.OrangeRed;
-            this.closeBtn.HoverIconColor = System.Drawing.Color.Black;
-            this.closeBtn.IconColor = System.Drawing.Color.Black;
-            this.closeBtn.IconLineThickness = 2;
-            this.closeBtn.Location = new System.Drawing.Point(969, 1);
-            this.closeBtn.Name = "closeBtn";
-            this.closeBtn.Size = new System.Drawing.Size(40, 40);
-            this.closeBtn.TabIndex = 7;
-            this.closeBtn.Text = "windowsDefaultTitleBarButton1";
-            this.closeBtn.UseVisualStyleBackColor = true;
-            // 
             // refreshBtn
             // 
             this.refreshBtn.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(33)))), ((int)(((byte)(33)))), ((int)(((byte)(33)))));
@@ -194,35 +166,48 @@ namespace KsDumper11
             this.refreshBtn.UseVisualStyleBackColor = false;
             this.refreshBtn.Click += new System.EventHandler(this.refreshBtn_Click);
             // 
-            // autoRefreshCheckBox
-            // 
-            this.autoRefreshCheckBox.Appearance = System.Windows.Forms.Appearance.Button;
-            this.autoRefreshCheckBox.BoxBorderColor = System.Drawing.Color.DarkSlateBlue;
-            this.autoRefreshCheckBox.BoxFillColor = System.Drawing.Color.FromArgb(((int)(((byte)(33)))), ((int)(((byte)(33)))), ((int)(((byte)(33)))));
-            this.autoRefreshCheckBox.CheckColor = System.Drawing.Color.CornflowerBlue;
-            this.autoRefreshCheckBox.FlatAppearance.BorderSize = 0;
-            this.autoRefreshCheckBox.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.autoRefreshCheckBox.Location = new System.Drawing.Point(93, 49);
-            this.autoRefreshCheckBox.Name = "autoRefreshCheckBox";
-            this.autoRefreshCheckBox.Size = new System.Drawing.Size(98, 23);
-            this.autoRefreshCheckBox.TabIndex = 11;
-            this.autoRefreshCheckBox.Text = "Auto Refresh";
-            this.autoRefreshCheckBox.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.autoRefreshCheckBox.UseVisualStyleBackColor = true;
-            this.autoRefreshCheckBox.CheckedChanged += new System.EventHandler(this.autoRefreshCheckBox_CheckedChanged);
-            // 
             // hideSystemProcessBtn
             // 
             this.hideSystemProcessBtn.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(33)))), ((int)(((byte)(33)))), ((int)(((byte)(33)))));
             this.hideSystemProcessBtn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.hideSystemProcessBtn.ForeColor = System.Drawing.Color.Silver;
-            this.hideSystemProcessBtn.Location = new System.Drawing.Point(750, 49);
+            this.hideSystemProcessBtn.Location = new System.Drawing.Point(827, 49);
             this.hideSystemProcessBtn.Name = "hideSystemProcessBtn";
             this.hideSystemProcessBtn.Size = new System.Drawing.Size(137, 23);
             this.hideSystemProcessBtn.TabIndex = 12;
             this.hideSystemProcessBtn.Text = "Show System Processes";
             this.hideSystemProcessBtn.UseVisualStyleBackColor = false;
             this.hideSystemProcessBtn.Click += new System.EventHandler(this.hideSystemProcessBtn_Click);
+            // 
+            // antiantiDebuggerToolsBox
+            // 
+            this.antiantiDebuggerToolsBox.Appearance = System.Windows.Forms.Appearance.Button;
+            this.antiantiDebuggerToolsBox.BoxBorderColor = System.Drawing.Color.DarkSlateBlue;
+            this.antiantiDebuggerToolsBox.BoxFillColor = System.Drawing.Color.FromArgb(((int)(((byte)(33)))), ((int)(((byte)(33)))), ((int)(((byte)(33)))));
+            this.antiantiDebuggerToolsBox.CheckColor = System.Drawing.Color.CornflowerBlue;
+            this.antiantiDebuggerToolsBox.FlatAppearance.BorderSize = 0;
+            this.antiantiDebuggerToolsBox.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.antiantiDebuggerToolsBox.Location = new System.Drawing.Point(500, 48);
+            this.antiantiDebuggerToolsBox.Name = "antiantiDebuggerToolsBox";
+            this.antiantiDebuggerToolsBox.Size = new System.Drawing.Size(244, 23);
+            this.antiantiDebuggerToolsBox.TabIndex = 18;
+            this.antiantiDebuggerToolsBox.Text = "Enable Anti Anti Debugger Tools Detection";
+            this.antiantiDebuggerToolsBox.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.antiantiDebuggerToolsBox.UseVisualStyleBackColor = true;
+            this.antiantiDebuggerToolsBox.CheckedChanged += new System.EventHandler(this.antiantiDebuggerToolsBox_CheckedChanged);
+            // 
+            // providerBtn
+            // 
+            this.providerBtn.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(33)))), ((int)(((byte)(33)))), ((int)(((byte)(33)))));
+            this.providerBtn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.providerBtn.ForeColor = System.Drawing.Color.Silver;
+            this.providerBtn.Location = new System.Drawing.Point(970, 49);
+            this.providerBtn.Name = "providerBtn";
+            this.providerBtn.Size = new System.Drawing.Size(106, 23);
+            this.providerBtn.TabIndex = 17;
+            this.providerBtn.Text = "Provider Selector";
+            this.providerBtn.UseVisualStyleBackColor = true;
+            this.providerBtn.Click += new System.EventHandler(this.providerBtn_Click);
             // 
             // closeDriverOnExitBox
             // 
@@ -241,18 +226,38 @@ namespace KsDumper11
             this.closeDriverOnExitBox.UseVisualStyleBackColor = true;
             this.closeDriverOnExitBox.CheckedChanged += new System.EventHandler(this.closeDriverOnExitBox_CheckedChanged);
             // 
-            // appIcon1
+            // autoRefreshCheckBox
             // 
-            this.appIcon1.AppIconImage = global::KsDumper11.Properties.Resources.icons8_crossed_axes_100;
-            this.appIcon1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(33)))), ((int)(((byte)(33)))), ((int)(((byte)(33)))));
-            this.appIcon1.DragForm = this;
-            this.appIcon1.Image = ((System.Drawing.Image)(resources.GetObject("appIcon1.Image")));
-            this.appIcon1.Location = new System.Drawing.Point(5, 4);
-            this.appIcon1.Name = "appIcon1";
-            this.appIcon1.Scale = 3.5F;
-            this.appIcon1.Size = new System.Drawing.Size(28, 28);
-            this.appIcon1.TabIndex = 9;
-            this.appIcon1.TabStop = false;
+            this.autoRefreshCheckBox.Appearance = System.Windows.Forms.Appearance.Button;
+            this.autoRefreshCheckBox.BoxBorderColor = System.Drawing.Color.DarkSlateBlue;
+            this.autoRefreshCheckBox.BoxFillColor = System.Drawing.Color.FromArgb(((int)(((byte)(33)))), ((int)(((byte)(33)))), ((int)(((byte)(33)))));
+            this.autoRefreshCheckBox.CheckColor = System.Drawing.Color.CornflowerBlue;
+            this.autoRefreshCheckBox.FlatAppearance.BorderSize = 0;
+            this.autoRefreshCheckBox.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.autoRefreshCheckBox.Location = new System.Drawing.Point(93, 49);
+            this.autoRefreshCheckBox.Name = "autoRefreshCheckBox";
+            this.autoRefreshCheckBox.Size = new System.Drawing.Size(98, 23);
+            this.autoRefreshCheckBox.TabIndex = 11;
+            this.autoRefreshCheckBox.Text = "Auto Refresh";
+            this.autoRefreshCheckBox.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.autoRefreshCheckBox.UseVisualStyleBackColor = true;
+            this.autoRefreshCheckBox.CheckedChanged += new System.EventHandler(this.autoRefreshCheckBox_CheckedChanged);
+            // 
+            // closeBtn
+            // 
+            this.closeBtn.ButtonType = DarkControls.Controls.WindowsDefaultTitleBarButton.Type.Close;
+            this.closeBtn.ClickColor = System.Drawing.Color.Red;
+            this.closeBtn.ClickIconColor = System.Drawing.Color.Black;
+            this.closeBtn.HoverColor = System.Drawing.Color.OrangeRed;
+            this.closeBtn.HoverIconColor = System.Drawing.Color.Black;
+            this.closeBtn.IconColor = System.Drawing.Color.Black;
+            this.closeBtn.IconLineThickness = 2;
+            this.closeBtn.Location = new System.Drawing.Point(1050, 0);
+            this.closeBtn.Name = "closeBtn";
+            this.closeBtn.Size = new System.Drawing.Size(40, 40);
+            this.closeBtn.TabIndex = 7;
+            this.closeBtn.Text = "windowsDefaultTitleBarButton1";
+            this.closeBtn.UseVisualStyleBackColor = true;
             // 
             // processList
             // 
@@ -275,7 +280,7 @@ namespace KsDumper11
             this.processList.MultiSelect = false;
             this.processList.Name = "processList";
             this.processList.OwnerDraw = true;
-            this.processList.Size = new System.Drawing.Size(987, 428);
+            this.processList.Size = new System.Drawing.Size(1064, 428);
             this.processList.Sorting = System.Windows.Forms.SortOrder.Ascending;
             this.processList.SystemProcessesHidden = true;
             this.processList.TabIndex = 2;
@@ -295,7 +300,7 @@ namespace KsDumper11
             // PathHeader
             // 
             this.PathHeader.Text = "Path";
-            this.PathHeader.Width = 375;
+            this.PathHeader.Width = 367;
             // 
             // BaseAddressHeader
             // 
@@ -305,7 +310,7 @@ namespace KsDumper11
             // EntryPointHeader
             // 
             this.EntryPointHeader.Text = "Entry Point";
-            this.EntryPointHeader.Width = 106;
+            this.EntryPointHeader.Width = 102;
             // 
             // ImageSizeHeader
             // 
@@ -315,25 +320,35 @@ namespace KsDumper11
             // ImageTypeHeader
             // 
             this.ImageTypeHeader.Text = "Image Type";
-            this.ImageTypeHeader.Width = 76;
+            this.ImageTypeHeader.Width = 75;
             // 
             // FrameworkHeader
             // 
             this.FrameworkHeader.Text = "Framework";
-            this.FrameworkHeader.Width = 80;
+            this.FrameworkHeader.Width = 101;
             // 
-            // providerBtn
+            // appIcon1
             // 
-            this.providerBtn.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(33)))), ((int)(((byte)(33)))), ((int)(((byte)(33)))));
-            this.providerBtn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.providerBtn.ForeColor = System.Drawing.Color.Silver;
-            this.providerBtn.Location = new System.Drawing.Point(893, 49);
-            this.providerBtn.Name = "providerBtn";
-            this.providerBtn.Size = new System.Drawing.Size(106, 23);
-            this.providerBtn.TabIndex = 17;
-            this.providerBtn.Text = "Provider Selector";
-            this.providerBtn.UseVisualStyleBackColor = true;
-            this.providerBtn.Click += new System.EventHandler(this.providerBtn_Click);
+            this.appIcon1.AppIconImage = global::KsDumper11.Properties.Resources.AppIcon;
+            this.appIcon1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(33)))), ((int)(((byte)(33)))), ((int)(((byte)(33)))));
+            this.appIcon1.DragForm = this;
+            this.appIcon1.Image = ((System.Drawing.Image)(resources.GetObject("appIcon1.Image")));
+            this.appIcon1.Location = new System.Drawing.Point(5, 4);
+            this.appIcon1.Name = "appIcon1";
+            this.appIcon1.Scale = 3.5F;
+            this.appIcon1.Size = new System.Drawing.Size(28, 28);
+            this.appIcon1.TabIndex = 9;
+            this.appIcon1.TabStop = false;
+            // 
+            // titleLbl
+            // 
+            this.titleLbl.AutoSize = true;
+            this.titleLbl.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.titleLbl.Location = new System.Drawing.Point(32, 7);
+            this.titleLbl.Name = "titleLbl";
+            this.titleLbl.Size = new System.Drawing.Size(106, 20);
+            this.titleLbl.TabIndex = 8;
+            this.titleLbl.Text = "KsDumper 11";
             // 
             // trigger1
             // 
@@ -353,29 +368,12 @@ namespace KsDumper11
             this.debuggerTrigger.Size = new System.Drawing.Size(15, 13);
             this.debuggerTrigger.TabIndex = 15;
             // 
-            // antiantiDebuggerToolsBox
-            // 
-            this.antiantiDebuggerToolsBox.Appearance = System.Windows.Forms.Appearance.Button;
-            this.antiantiDebuggerToolsBox.BoxBorderColor = System.Drawing.Color.DarkSlateBlue;
-            this.antiantiDebuggerToolsBox.BoxFillColor = System.Drawing.Color.FromArgb(((int)(((byte)(33)))), ((int)(((byte)(33)))), ((int)(((byte)(33)))));
-            this.antiantiDebuggerToolsBox.CheckColor = System.Drawing.Color.CornflowerBlue;
-            this.antiantiDebuggerToolsBox.FlatAppearance.BorderSize = 0;
-            this.antiantiDebuggerToolsBox.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.antiantiDebuggerToolsBox.Location = new System.Drawing.Point(500, 48);
-            this.antiantiDebuggerToolsBox.Name = "antiantiDebuggerToolsBox";
-            this.antiantiDebuggerToolsBox.Size = new System.Drawing.Size(244, 23);
-            this.antiantiDebuggerToolsBox.TabIndex = 18;
-            this.antiantiDebuggerToolsBox.Text = "Enable Anti Anti Debugger Tools Detection";
-            this.antiantiDebuggerToolsBox.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.antiantiDebuggerToolsBox.UseVisualStyleBackColor = true;
-            this.antiantiDebuggerToolsBox.CheckedChanged += new System.EventHandler(this.antiantiDebuggerToolsBox_CheckedChanged);
-            // 
             // DumperForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(33)))), ((int)(((byte)(33)))), ((int)(((byte)(33)))));
-            this.ClientSize = new System.Drawing.Size(1009, 746);
+            this.ClientSize = new System.Drawing.Size(1090, 746);
             this.Controls.Add(this.antiantiDebuggerToolsBox);
             this.Controls.Add(this.providerBtn);
             this.Controls.Add(this.trigger1);
@@ -393,6 +391,7 @@ namespace KsDumper11
             this.DoubleBuffered = true;
             this.ForeColor = System.Drawing.Color.Silver;
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
             this.Name = "DumperForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;

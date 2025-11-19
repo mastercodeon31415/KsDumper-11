@@ -301,7 +301,7 @@
             // 
             // appIcon1
             // 
-            this.appIcon1.AppIconImage = ((System.Drawing.Image)(resources.GetObject("appIcon1.AppIconImage")));
+            this.appIcon1.AppIconImage = global::KsDumper11.Properties.Resources.AppIcon;
             this.appIcon1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(33)))), ((int)(((byte)(33)))), ((int)(((byte)(33)))));
             this.appIcon1.DragForm = null;
             this.appIcon1.Image = ((System.Drawing.Image)(resources.GetObject("appIcon1.Image")));
@@ -345,7 +345,7 @@
             this.wipeSettingsBtn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.wipeSettingsBtn.ForeColor = System.Drawing.Color.Silver;
             this.wipeSettingsBtn.Location = new System.Drawing.Point(597, 443);
-            this.wipeSettingsBtn.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.wipeSettingsBtn.Margin = new System.Windows.Forms.Padding(2);
             this.wipeSettingsBtn.Name = "wipeSettingsBtn";
             this.wipeSettingsBtn.Size = new System.Drawing.Size(84, 23);
             this.wipeSettingsBtn.TabIndex = 31;
@@ -388,6 +388,7 @@
             this.DoubleBuffered = true;
             this.ForeColor = System.Drawing.Color.Silver;
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "ProviderSelector";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "KsDumper 11 Provider Selection";

@@ -82,7 +82,8 @@
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>Default.ico</ApplicationIcon>
+    <ApplicationIcon>
+    </ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
@@ -176,7 +177,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Default.ico" />
+    <Content Include="app.ico" />
     <Content Include="Driver\drv64.dll" />
     <Content Include="Driver\kdu.exe" />
     <Content Include="Driver\Taigei64.dll" />
