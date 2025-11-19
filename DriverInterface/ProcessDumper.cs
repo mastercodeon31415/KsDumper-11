@@ -26,17 +26,19 @@ namespace KsDumper11
 
         public bool DumpProcess(Process processSummary, out PEFile outputFile)
         {
-            // Native process object wrapper
-            return DumpProcessImpl(processSummary.Id, processSummary.ProcessName, processSummary.MainModule.BaseAddress, !IsWin64Emulator(processSummary), out outputFile);
+            // CHANGED: Cast IntPtr to ulong explicitly to avoid overflow in 32-bit process
+            ulong baseAddr = (ulong)processSummary.MainModule.BaseAddress.ToInt64();
+            return DumpProcessImpl(processSummary.Id, processSummary.ProcessName, baseAddr, !IsWin64Emulator(processSummary), out outputFile);
         }
 
         public bool DumpProcess(ProcessSummary processSummary, out PEFile outputFile)
         {
-            // Custom ProcessSummary wrapper
-            return DumpProcessImpl(processSummary.ProcessId, processSummary.ProcessName, (IntPtr)((long)processSummary.MainModuleBase), !processSummary.IsWOW64, out outputFile);
+            // CHANGED: ProcessSummary already uses ulong, pass it directly
+            return DumpProcessImpl(processSummary.ProcessId, processSummary.ProcessName, processSummary.MainModuleBase, !processSummary.IsWOW64, out outputFile);
         }
 
-        private bool DumpProcessImpl(int processId, string processName, IntPtr basePointer, bool is64Bit, out PEFile outputFile)
+        // CHANGED: basePointer is now ulong
+        private bool DumpProcessImpl(int processId, string processName, ulong basePointer, bool is64Bit, out PEFile outputFile)
         {
             NativePEStructs.IMAGE_DOS_HEADER dosHeader = this.ReadProcessStruct<NativePEStructs.IMAGE_DOS_HEADER>(processId, basePointer);
             outputFile = null;
@@ -45,9 +47,11 @@ namespace KsDumper11
             bool isValid = dosHeader.IsValid;
             if (isValid)
             {
-                IntPtr peHeaderPointer = basePointer + dosHeader.e_lfanew;
-                Logger.Log("PE Header Found: 0x{0:x8}", new object[] { peHeaderPointer.ToInt64() });
-                IntPtr dosStubPointer = basePointer + Marshal.SizeOf<NativePEStructs.IMAGE_DOS_HEADER>();
+                // CHANGED: Arithmetic using ulong
+                ulong peHeaderPointer = basePointer + (ulong)dosHeader.e_lfanew;
+                Logger.Log("PE Header Found: 0x{0:x8}", new object[] { peHeaderPointer });
+
+                ulong dosStubPointer = basePointer + (ulong)Marshal.SizeOf<NativePEStructs.IMAGE_DOS_HEADER>();
                 byte[] dosStub = this.ReadProcessBytes(processId, dosStubPointer, dosHeader.e_lfanew - Marshal.SizeOf<NativePEStructs.IMAGE_DOS_HEADER>());
 
                 PEFile peFile;
@@ -63,7 +67,8 @@ namespace KsDumper11
                 bool flag2 = peFile != null;
                 if (flag2)
                 {
-                    IntPtr sectionHeaderPointer = peHeaderPointer + peFile.GetFirstSectionHeaderOffset();
+                    // CHANGED: Arithmetic using ulong
+                    ulong sectionHeaderPointer = peHeaderPointer + (ulong)peFile.GetFirstSectionHeaderOffset();
                     Logger.Log("Header is valid ({0}) !", new object[] { peFile.Type });
                     Logger.Log("Parsing {0} Sections...", new object[] { peFile.Sections.Count });
 
@@ -71,15 +76,17 @@ namespace KsDumper11
                     {
                         NativePEStructs.IMAGE_SECTION_HEADER sectionHeader = this.ReadProcessStruct<NativePEStructs.IMAGE_SECTION_HEADER>(processId, sectionHeaderPointer);
 
-                        // Update existing section entry
                         peFile.Sections[i] = new PESection
                         {
                             Header = PESection.PESectionHeader.FromNativeStruct(sectionHeader),
                             InitialSize = (int)sectionHeader.VirtualSize
                         };
 
-                        this.ReadSectionContent(processId, new IntPtr(basePointer.ToInt64() + (long)((ulong)sectionHeader.VirtualAddress)), peFile.Sections[i]);
-                        sectionHeaderPointer += Marshal.SizeOf<NativePEStructs.IMAGE_SECTION_HEADER>();
+                        // CHANGED: Arithmetic using ulong
+                        ulong sectionDataPtr = basePointer + (ulong)sectionHeader.VirtualAddress;
+                        this.ReadSectionContent(processId, sectionDataPtr, peFile.Sections[i]);
+
+                        sectionHeaderPointer += (ulong)Marshal.SizeOf<NativePEStructs.IMAGE_SECTION_HEADER>();
                     }
 
                     Logger.Log("Aligning Sections...", Array.Empty<object>());
@@ -95,7 +102,6 @@ namespace KsDumper11
 
                         if (modules.Count > 0)
                         {
-                            // Pass driver and processId to allow memory reading of exports
                             var reconstructor = new IATReconstructor(this.kernelDriver, processId, modules, is64Bit);
                             bool fixedImports = reconstructor.FixImports(peFile);
                             if (fixedImports)
@@ -129,7 +135,8 @@ namespace KsDumper11
             return false;
         }
 
-        private PEFile Dump64BitPE(int processId, NativePEStructs.IMAGE_DOS_HEADER dosHeader, byte[] dosStub, IntPtr peHeaderPointer)
+        // CHANGED: peHeaderPointer is ulong
+        private PEFile Dump64BitPE(int processId, NativePEStructs.IMAGE_DOS_HEADER dosHeader, byte[] dosStub, ulong peHeaderPointer)
         {
             NativePEStructs.IMAGE_NT_HEADERS64 peHeader = this.ReadProcessStruct<NativePEStructs.IMAGE_NT_HEADERS64>(processId, peHeaderPointer);
             bool isValid = peHeader.IsValid;
@@ -145,7 +152,8 @@ namespace KsDumper11
             return pefile;
         }
 
-        private PEFile Dump32BitPE(int processId, NativePEStructs.IMAGE_DOS_HEADER dosHeader, byte[] dosStub, IntPtr peHeaderPointer)
+        // CHANGED: peHeaderPointer is ulong
+        private PEFile Dump32BitPE(int processId, NativePEStructs.IMAGE_DOS_HEADER dosHeader, byte[] dosStub, ulong peHeaderPointer)
         {
             NativePEStructs.IMAGE_NT_HEADERS32 peHeader = this.ReadProcessStruct<NativePEStructs.IMAGE_NT_HEADERS32>(processId, peHeaderPointer);
             bool isValid = peHeader.IsValid;
@@ -161,7 +169,8 @@ namespace KsDumper11
             return pefile;
         }
 
-        private T ReadProcessStruct<T>(int processId, IntPtr address) where T : struct
+        // CHANGED: address is ulong
+        private T ReadProcessStruct<T>(int processId, ulong address) where T : struct
         {
             IntPtr buffer = MarshalUtility.AllocEmptyStruct<T>();
             bool flag = this.kernelDriver.CopyVirtualMemory(processId, address, buffer, Marshal.SizeOf<T>());
@@ -177,10 +186,11 @@ namespace KsDumper11
             return t;
         }
 
-        private bool ReadSectionContent(int processId, IntPtr sectionPointer, PESection section)
+        // CHANGED: sectionPointer is ulong
+        private bool ReadSectionContent(int processId, ulong sectionPointer, PESection section)
         {
             int readSize = section.InitialSize;
-            bool flag = sectionPointer == IntPtr.Zero || readSize == 0;
+            bool flag = sectionPointer == 0 || readSize == 0;
             bool flag2;
             if (flag)
             {
@@ -213,9 +223,11 @@ namespace KsDumper11
             return flag2;
         }
 
-        private byte[] ReadProcessBytes(int processId, IntPtr address, int size)
+        // CHANGED: address is ulong
+        private byte[] ReadProcessBytes(int processId, ulong address, int size)
         {
             IntPtr unmanagedBytePointer = MarshalUtility.AllocZeroFilled(size);
+            // Pass ulong address directly
             this.kernelDriver.CopyVirtualMemory(processId, address, unmanagedBytePointer, size);
             byte[] buffer = new byte[size];
             Marshal.Copy(unmanagedBytePointer, buffer, 0, size);
@@ -223,7 +235,8 @@ namespace KsDumper11
             return buffer;
         }
 
-        private void CalculateRealSectionSize(int processId, IntPtr sectionPointer, PESection section)
+        // CHANGED: sectionPointer and currentOffset are ulong
+        private void CalculateRealSectionSize(int processId, ulong sectionPointer, PESection section)
         {
             int readSize = section.InitialSize;
             int currentReadSize = readSize % 100;
@@ -232,19 +245,21 @@ namespace KsDumper11
             {
                 currentReadSize = 100;
             }
-            IntPtr currentOffset = sectionPointer + readSize - currentReadSize;
-            while (currentOffset.ToInt64() >= sectionPointer.ToInt64())
+            ulong currentOffset = sectionPointer + (ulong)readSize - (ulong)currentReadSize;
+
+            // Compare ulong directly
+            while (currentOffset >= sectionPointer)
             {
                 byte[] buffer = this.ReadProcessBytes(processId, currentOffset, currentReadSize);
                 int codeByteCount = this.GetInstructionByteCount(buffer);
                 bool flag2 = codeByteCount != 0;
                 if (flag2)
                 {
-                    currentOffset += codeByteCount;
-                    bool flag3 = sectionPointer.ToInt64() < currentOffset.ToInt64();
+                    currentOffset += (ulong)codeByteCount;
+                    bool flag3 = sectionPointer < currentOffset;
                     if (flag3)
                     {
-                        section.DataSize = (int)(currentOffset.ToInt64() - sectionPointer.ToInt64());
+                        section.DataSize = (int)(currentOffset - sectionPointer);
                         section.DataSize += 4;
                         bool flag4 = section.InitialSize < section.DataSize;
                         if (flag4)
@@ -255,7 +270,7 @@ namespace KsDumper11
                     break;
                 }
                 currentReadSize = 100;
-                currentOffset -= currentReadSize;
+                currentOffset -= (ulong)currentReadSize;
             }
         }
 

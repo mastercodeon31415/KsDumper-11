@@ -1,4 +1,5 @@
-﻿using System;
+﻿// Relative Path: Driver\KsDumperDriverInterface.cs
+using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
@@ -82,9 +83,6 @@ namespace KsDumper11.Driver
             if (this.driverHandle == WinApi.INVALID_HANDLE_VALUE)
                 return modules;
 
-            // Allocate a buffer large enough for many modules. 
-            // 512 modules * size of struct (approx 256+8+8 bytes) ~ 140KB.
-            // Kernel side has a safety check for 10MB.
             int maxModules = 512;
             int structSize = Marshal.SizeOf(typeof(Operations.KERNEL_MODULE_INFO));
             int bufferSize = maxModules * structSize;
@@ -112,7 +110,6 @@ namespace KsDumper11.Driver
 
                     if (operation.moduleCount > 0)
                     {
-                        // Read array items manually
                         IntPtr currentPtr = bufferPointer;
                         for (int i = 0; i < operation.moduleCount; i++)
                         {
@@ -148,7 +145,8 @@ namespace KsDumper11.Driver
             return 0;
         }
 
-        public bool CopyVirtualMemory(int targetProcessId, IntPtr targetAddress, IntPtr bufferAddress, int bufferSize)
+        // CHANGED: targetAddress is now ulong to prevent overflows on 32-bit clients accessing 64-bit memory
+        public bool CopyVirtualMemory(int targetProcessId, ulong targetAddress, IntPtr bufferAddress, int bufferSize)
         {
             bool flag = this.driverHandle != WinApi.INVALID_HANDLE_VALUE;
             bool flag2;
@@ -157,7 +155,7 @@ namespace KsDumper11.Driver
                 Operations.KERNEL_COPY_MEMORY_OPERATION operation = new Operations.KERNEL_COPY_MEMORY_OPERATION
                 {
                     targetProcessId = targetProcessId,
-                    targetAddress = (ulong)targetAddress.ToInt64(),
+                    targetAddress = targetAddress, // No casting to IntPtr needed here
                     bufferAddress = (ulong)bufferAddress.ToInt64(),
                     bufferSize = bufferSize
                 };

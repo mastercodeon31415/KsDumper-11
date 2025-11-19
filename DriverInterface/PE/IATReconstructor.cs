@@ -17,7 +17,6 @@ namespace KsDumper11.PE
         private readonly List<Operations.KERNEL_MODULE_INFO> _modules;
         private readonly bool _is64Bit;
 
-        // Cache exports: ModuleName -> Dictionary<RVA, FunctionName>
         private static Dictionary<string, Dictionary<uint, string>> _exportCache = new Dictionary<string, Dictionary<uint, string>>();
 
         public IATReconstructor(KsDumperDriverInterface driver, int processId, List<Operations.KERNEL_MODULE_INFO> modules, bool is64Bit)
@@ -31,8 +30,6 @@ namespace KsDumper11.PE
         public bool FixImports(PEFile dumpedPe)
         {
             Logger.Log("Starting IAT Reconstruction...");
-
-            // Clear cache for new dump session to ensure freshness
             _exportCache.Clear();
 
             var importedFunctions = ScanForImports(dumpedPe);
@@ -65,20 +62,16 @@ namespace KsDumper11.PE
                     else
                         ptrVal = BitConverter.ToUInt32(section.Content, i);
 
-                    // Basic sanity check: Pointer must be somewhat aligned and non-zero
                     if (ptrVal == 0) continue;
 
                     var module = FindModuleContainingAddress(ptrVal);
                     if (module.BaseAddress != 0)
                     {
                         uint rva = (uint)(ptrVal - module.BaseAddress);
-
-                        // Resolve Export via Memory Parsing (Fixes Manual Map & Version Mismatch)
                         string exportName = ResolveExport(module, rva);
 
                         if (!string.IsNullOrEmpty(exportName))
                         {
-                            // Use the Name from KERNEL_MODULE_INFO (Handles Manual Maps correctly)
                             string modName = Path.GetFileName(module.FullPathName);
                             if (string.IsNullOrEmpty(modName)) modName = $"Module_{module.BaseAddress:X}";
 
@@ -114,7 +107,7 @@ namespace KsDumper11.PE
 
         private string ResolveExport(Operations.KERNEL_MODULE_INFO module, uint rva)
         {
-            string moduleKey = $"{module.BaseAddress:X}"; // Use BaseAddress as key to avoid name collisions
+            string moduleKey = $"{module.BaseAddress:X}";
 
             if (!_exportCache.ContainsKey(moduleKey))
             {
@@ -133,52 +126,32 @@ namespace KsDumper11.PE
         private Dictionary<uint, string> ParseExportsFromMemory(Operations.KERNEL_MODULE_INFO module)
         {
             var exports = new Dictionary<uint, string>();
-            IntPtr baseAddr = (IntPtr)(long)module.BaseAddress;
+            // CHANGED: Use ulong for base address to avoid 32-bit overflow
+            ulong baseAddr = module.BaseAddress;
 
-            // Read DOS Header
             var dosHeader = ReadStruct<NativePEStructs.IMAGE_DOS_HEADER>(baseAddr);
             if (dosHeader.e_magic[0] != 'M' || dosHeader.e_magic[1] != 'Z') return exports;
 
-            // Read NT Header offset
-            IntPtr ntHeaderPtr = baseAddr + dosHeader.e_lfanew;
+            // Use ulong arithmetic
+            ulong ntHeaderPtr = baseAddr + (ulong)dosHeader.e_lfanew;
 
-            // Check Architecture to find Data Directories
-            uint exportRva = 0;
-            uint exportSize = 0;
-
-            // We rely on _is64Bit flag passed to constructor for the TARGET process architecture
-            // However, a module might theoretically be different in WoW64, but typically we follow process arch.
-
-            // Read Signature
             int signature = ReadInt32(ntHeaderPtr);
-            if (signature != 0x00004550) return exports; // "PE\0\0"
+            if (signature != 0x00004550) return exports;
 
-            // OptionalHeader offset: Signature(4) + FileHeader(20) = 24 bytes
-            IntPtr optionalHeaderPtr = ntHeaderPtr + 24;
+            ulong optionalHeaderPtr = ntHeaderPtr + 24;
 
             ushort magic = ReadUInt16(optionalHeaderPtr);
             bool isMod64 = (magic == 0x20b);
 
-            // DataDirectory Offset
-            // PE32: 96 bytes into OptionalHeader
-            // PE64: 112 bytes into OptionalHeader
             int dataDirOffset = isMod64 ? 112 : 96;
-            IntPtr exportDirEntryPtr = optionalHeaderPtr + dataDirOffset; // Export is index 0
+            ulong exportDirEntryPtr = optionalHeaderPtr + (ulong)dataDirOffset;
 
-            exportRva = ReadUInt32(exportDirEntryPtr);
-            exportSize = ReadUInt32(exportDirEntryPtr + 4);
+            uint exportRva = ReadUInt32(exportDirEntryPtr);
+            uint exportSize = ReadUInt32(exportDirEntryPtr + 4);
 
             if (exportRva == 0 || exportSize == 0) return exports;
 
-            IntPtr exportDirPtr = baseAddr + (int)exportRva;
-
-            // Read Export Directory Table
-            // Characteristics (4), TimeDateStamp (4), Major (2), Minor (2), Name (4), Base (4)
-            // NumberOfFunctions (4) -> Offset 20
-            // NumberOfNames (4)     -> Offset 24
-            // AddressOfFunctions (4)-> Offset 28
-            // AddressOfNames (4)    -> Offset 32
-            // AddressOfNameOrdinals(4)-> Offset 36
+            ulong exportDirPtr = baseAddr + exportRva;
 
             uint numberOfFunctions = ReadUInt32(exportDirPtr + 20);
             uint numberOfNames = ReadUInt32(exportDirPtr + 24);
@@ -186,28 +159,18 @@ namespace KsDumper11.PE
             uint addressOfNamesRva = ReadUInt32(exportDirPtr + 32);
             uint addressOfNameOrdinalsRva = ReadUInt32(exportDirPtr + 36);
 
-            // Pre-calculate pointers
-            IntPtr funcTablePtr = baseAddr + (int)addressOfFunctionsRva;
-            IntPtr nameTablePtr = baseAddr + (int)addressOfNamesRva;
-            IntPtr ordinalTablePtr = baseAddr + (int)addressOfNameOrdinalsRva;
+            ulong funcTablePtr = baseAddr + addressOfFunctionsRva;
+            ulong nameTablePtr = baseAddr + addressOfNamesRva;
+            ulong ordinalTablePtr = baseAddr + addressOfNameOrdinalsRva;
 
-            // Read Ordinals and Names
-            // We loop by NumberOfNames because we only care about named exports for IAT reconstruction
             for (uint i = 0; i < numberOfNames; i++)
             {
-                // Read Name RVA
-                uint nameRva = ReadUInt32(nameTablePtr + (int)(i * 4));
-                // Read Ordinal
-                ushort ordinal = ReadUInt16(ordinalTablePtr + (int)(i * 2));
-                // Read Function RVA
-                uint funcRva = ReadUInt32(funcTablePtr + (int)(ordinal * 4));
+                uint nameRva = ReadUInt32(nameTablePtr + (i * 4));
+                ushort ordinal = ReadUInt16(ordinalTablePtr + (i * 2));
+                uint funcRva = ReadUInt32(funcTablePtr + ((ulong)ordinal * 4));
 
-                // Read Name String
-                string name = ReadString(baseAddr + (int)nameRva, 64); // Cap length to avoid massive reads
+                string name = ReadString(baseAddr + nameRva, 64);
 
-                // Handle Forwarders
-                // If funcRva is within the Export Directory range, it's a forwarder string, not code.
-                // We skip forwarders for now as they require recursive resolution which is complex for simple dumping.
                 bool isForwarder = (funcRva >= exportRva && funcRva < (exportRva + exportSize));
 
                 if (!string.IsNullOrEmpty(name) && !isForwarder)
@@ -222,8 +185,8 @@ namespace KsDumper11.PE
             return exports;
         }
 
-        // Helper wrappers for driver memory reading
-        private T ReadStruct<T>(IntPtr address) where T : struct
+        // CHANGED: All Read helpers now take ulong address
+        private T ReadStruct<T>(ulong address) where T : struct
         {
             IntPtr buffer = MarshalUtility.AllocEmptyStruct<T>();
             if (_driver.CopyVirtualMemory(_processId, address, buffer, Marshal.SizeOf<T>()))
@@ -234,28 +197,28 @@ namespace KsDumper11.PE
             return default(T);
         }
 
-        private uint ReadUInt32(IntPtr address)
+        private uint ReadUInt32(ulong address)
         {
             byte[] data = ReadBytes(address, 4);
             if (data.Length == 4) return BitConverter.ToUInt32(data, 0);
             return 0;
         }
 
-        private ushort ReadUInt16(IntPtr address)
+        private ushort ReadUInt16(ulong address)
         {
             byte[] data = ReadBytes(address, 2);
             if (data.Length == 2) return BitConverter.ToUInt16(data, 0);
             return 0;
         }
 
-        private int ReadInt32(IntPtr address)
+        private int ReadInt32(ulong address)
         {
             byte[] data = ReadBytes(address, 4);
             if (data.Length == 4) return BitConverter.ToInt32(data, 0);
             return 0;
         }
 
-        private byte[] ReadBytes(IntPtr address, int size)
+        private byte[] ReadBytes(ulong address, int size)
         {
             IntPtr buffer = MarshalUtility.AllocZeroFilled(size);
             if (_driver.CopyVirtualMemory(_processId, address, buffer, size))
@@ -269,7 +232,7 @@ namespace KsDumper11.PE
             return new byte[0];
         }
 
-        private string ReadString(IntPtr address, int maxLength)
+        private string ReadString(ulong address, int maxLength)
         {
             byte[] buffer = ReadBytes(address, maxLength);
             int nullIdx = Array.IndexOf(buffer, (byte)0);
@@ -286,8 +249,6 @@ namespace KsDumper11.PE
             using (var writer = new BinaryWriter(ms))
             {
                 uint newSectionRva = pe.GetNextSectionRva();
-
-                // Calculate sizes
                 int idtSize = (imports.Count + 1) * 20;
 
                 var moduleDescriptors = new List<ImportDescriptor>();
@@ -300,7 +261,7 @@ namespace KsDumper11.PE
                     uint off = (uint)stringBuffer.Count;
                     stringBuffer.AddRange(Encoding.ASCII.GetBytes(s));
                     stringBuffer.Add(0);
-                    if (stringBuffer.Count % 2 != 0) stringBuffer.Add(0); // Align
+                    if (stringBuffer.Count % 2 != 0) stringBuffer.Add(0);
                     stringOffsets[s] = off;
                     return off;
                 };
@@ -314,7 +275,7 @@ namespace KsDumper11.PE
                     foreach (var func in mod.Value)
                     {
                         uint hintNameRva = (uint)stringBuffer.Count;
-                        stringBuffer.Add(0); stringBuffer.Add(0); // Hint
+                        stringBuffer.Add(0); stringBuffer.Add(0);
                         stringBuffer.AddRange(Encoding.ASCII.GetBytes(func.Name));
                         stringBuffer.Add(0);
                         if (stringBuffer.Count % 2 != 0) stringBuffer.Add(0);
@@ -331,7 +292,6 @@ namespace KsDumper11.PE
                         }
                     }
 
-                    // Null terminator for Thunk Array
                     if (_is64Bit) iltBuffer.AddRange(new byte[8]);
                     else iltBuffer.AddRange(new byte[4]);
 
@@ -342,7 +302,6 @@ namespace KsDumper11.PE
                 uint stringsBase = iltBase + (uint)iltBuffer.Count;
                 uint iatBase = stringsBase + (uint)stringBuffer.Count;
 
-                // 1. Write IDT
                 foreach (var desc in moduleDescriptors)
                 {
                     uint originalFirstThunkRva = newSectionRva + iltBase + desc.IltOffset;
@@ -355,17 +314,14 @@ namespace KsDumper11.PE
                     writer.Write(nameRva);
                     writer.Write(firstThunkRva);
                 }
-                writer.Write(new byte[20]); // Null IDT Entry
+                writer.Write(new byte[20]);
 
-                // 2. Write ILT (OriginalFirstThunk)
                 var iltBytes = iltBuffer.ToArray();
                 PatchThunks(iltBytes, newSectionRva + stringsBase);
                 writer.Write(iltBytes);
 
-                // 3. Write Strings
                 writer.Write(stringBuffer.ToArray());
 
-                // 4. Write IAT (FirstThunk) - Identical to ILT initially
                 writer.Write(iltBytes);
 
                 writer.Flush();
