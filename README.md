@@ -50,11 +50,12 @@ https://github.com/user-attachments/assets/7558d492-859a-429b-b51e-285cae623c91
 + Anytime kdu loads and it detects a saved providers list, it will try to load the KsDumper driver using each saved provider until one works.
 + This technique should increase the amount of systems that the driver will be able to be loaded on. 
 
-## Support
+## Discord / Support
 You can join the official KsDumper 11 discord server where I will be managing ongoing issues. 
 For those of you who find that ksDumper won't start on their system, please join the server and post your logs in the support channel. 
 Please keep in mind that until others volunteer to help in development of this tool, I am only one person with a finite amount of knowledge. 
-https://discord.gg/6kfWU3Ckya
+I'm always open to feedback and suggestions!
+https://discord.gg/HFye2Kac
 
 ## Features
 - **Kernel-Mode Dumping**: Reads memory directly using `MmCopyVirtualMemory`, bypassing user-mode hooks.
@@ -146,9 +147,6 @@ This project has been made available for informational and educational purposes 
 Considering the nature of this project, it is highly recommended to run it in a `Virtual Environment`. I am not responsible for any crash or damage that could happen to your system.
 
 **Important**: This tool makes no attempt at hiding itself. If you target protected games, the anti-cheat might flag this as a cheat and ban you after a while. Use a `Virtual Environment` !
-
-## Discord Server
-Come say hi in my discord server for Ksdumper 11. Stay up to date with any development news, ect. I'm always open to feedback and suggestions!
 
 ## Contributing
 
