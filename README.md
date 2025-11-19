@@ -84,6 +84,7 @@ https://discord.gg/HFye2Kac
 1.  **x64 Windows OS** (The driver is 64-bit only).
 2.  **Secure Boot Disabled** (Required for most KDU providers).
 3.  **Administrator Privileges** (Required to load drivers).
+3.  **Microsoft Vulnerable Driver BlockList Disabled** (Required to load drivers).
 
 ### Initial Setup (First Run)
 The old way of loading the driver (capcom exploit) is patched in Windows 11. This version uses KDU.
