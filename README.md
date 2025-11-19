@@ -1,6 +1,12 @@
 # KsDumper-11
 https://github.com/user-attachments/assets/7558d492-859a-429b-b51e-285cae623c91
 
+## Whats new v1.3.5H (Hotfix)
++ **Fixed In-Memory .NET Dumping**: Addressed a critical logic flaw where .NET assemblies loaded via `Assembly.Load(byte[])` (Flat/Raw memory map) were being read from incorrect offsets, resulting in empty method bodies.
++ **Fixed Decompilation Offsets**: Adjusted the PE Header Generator to use Standard Alignment (0x2000 Section / 0x200 File). This ensures RVA-to-FileOffset calculations are correct, allowing tools like **dnSpy** to map code correctly (e.g., fixing the 0x2050 vs 0x250 offset mismatch).
++ **Fixed PE Header Corruption**: Resolved a bug in the Section Header writing logic that caused file structure corruption if section names were shorter than 8 bytes.
++ **Result**: In-memory modules (often used by packers/loaders) now dump with valid headers, correct code content, and are fully decompilable.
+
 ## Whats new v1.3.5
 + **Manual Map Detection**: The driver now utilizes VAD-style memory scanning to detect executable memory regions not linked in the system loader. These appear as **Red** entries in the Module View.
 + **.NET & Architecture Detection**: Automatically detects if a process is running the .NET Runtime (CLR) and identifies the specific architecture. These processes appear as **Cyan** in the process list.
