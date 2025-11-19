@@ -156,6 +156,7 @@ Considering the nature of this project, it is highly recommended to run it in a 
 **Important**: This tool makes no attempt at hiding itself. If you target protected games, the anti-cheat might flag this as a cheat and ban you after a while. Use a `Virtual Environment` !
 
 ## Contributing
+Big thanks to @maiet for helping me make v1.3.5 and the hotfix possible! He did a lot of research on how to go about adding module dumping to KsDumper 11 and created documentation on his findings that i used to make these two updates. Thank you so much for your time and support on this!
 
 Contributions are welcome! If you have suggestions for improvements or encounter any issues, please feel free to open an issue or submit a pull request.
 
