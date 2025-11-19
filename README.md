@@ -8,7 +8,7 @@ https://github.com/user-attachments/assets/7558d492-859a-429b-b51e-285cae623c91
 + **Module Dumping**: You can now dump specific DLLs (including hidden manual maps) via the Module View.
 + **Driver Stability**: Fixed a critical Bad Pool Caller (0xC2) BSOD by implementing safe memory allocation tags and buffer resizing logic in the kernel.
 + **UI Updates**: Added columns for "Framework" (.NET/Native) in the main list and color-coding for special modules.
-+ **KDU Version Update**: Updated KDU from v1.4.1 to v1.4.4. 3 New providers have been added.
++ **KDU Version Update**: Updated KDU from v1.4.1 to v1.4.4. Three new providers have been added.
 
 ## Whats new v1.3.4
 + Added new feature Anti Anti Debugging Tools Detection
