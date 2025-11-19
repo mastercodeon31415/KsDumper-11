@@ -1,4 +1,4 @@
-﻿// Relative Path: PE\IATReconstructor.cs
+﻿// Relative Path: KsDumper11\PE\IATReconstructor.cs
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using KsDumper11.Driver;
 using KsDumper11.Utility;
+using System.Reflection.PortableExecutable; // Requires System.Reflection.Metadata NuGet or Assembly ref
 
 namespace KsDumper11.PE
 {
@@ -54,7 +55,7 @@ namespace KsDumper11.PE
             {
                 if (section.Content == null || section.Content.Length == 0) continue;
 
-                for (int i = 0; i < section.Content.Length - ptrSize; i += 4)
+                for (int i = 0; i < section.Content.Length - ptrSize; i += 4) // 4 byte alignment
                 {
                     ulong ptrVal = 0;
                     if (_is64Bit)
@@ -73,7 +74,9 @@ namespace KsDumper11.PE
                         if (!string.IsNullOrEmpty(exportName))
                         {
                             string modName = Path.GetFileName(module.FullPathName);
-                            if (string.IsNullOrEmpty(modName)) modName = $"Module_{module.BaseAddress:X}";
+                            // Fix for unlinked modules or raw mappings
+                            if (string.IsNullOrEmpty(modName) || modName.StartsWith("Unlinked_Module"))
+                                modName = $"Module_{module.BaseAddress:X}";
 
                             if (!results.ContainsKey(modName))
                                 results[modName] = new List<ImportEntry>();
@@ -111,8 +114,24 @@ namespace KsDumper11.PE
 
             if (!_exportCache.ContainsKey(moduleKey))
             {
+                // Try Memory First
                 var exports = ParseExportsFromMemory(module);
-                _exportCache[moduleKey] = exports;
+
+                // Fallback: Disk
+                if ((exports == null || exports.Count == 0) &&
+                    !string.IsNullOrEmpty(module.FullPathName) &&
+                    File.Exists(module.FullPathName))
+                {
+                    Logger.Log($"Memory parsing failed for {Path.GetFileName(module.FullPathName)}. Attempting Disk Fallback...");
+                    var diskExports = ParseExportsFromDisk(module.FullPathName);
+                    if (diskExports.Count > 0)
+                    {
+                        exports = diskExports;
+                        Logger.Log($"Recovered {exports.Count} exports from disk.");
+                    }
+                }
+
+                _exportCache[moduleKey] = exports ?? new Dictionary<uint, string>();
             }
 
             if (_exportCache[moduleKey].TryGetValue(rva, out string funcName))
@@ -123,16 +142,103 @@ namespace KsDumper11.PE
             return null;
         }
 
+        private Dictionary<uint, string> ParseExportsFromDisk(string filePath)
+        {
+            var exports = new Dictionary<uint, string>();
+            try
+            {
+                // Use a FileStream to avoid locking? No, PEReader requires stream.
+                using (var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                using (var peReader = new PEReader(fs))
+                {
+                    var exportDirectory = peReader.PEHeaders.PEHeader.ExportTableDirectory;
+                    if (exportDirectory.Size == 0) return exports;
+
+                    int offset = peReader.PEHeaders.GetOffset(exportDirectory.RelativeVirtualAddress);
+                    fs.Seek(offset, SeekOrigin.Begin);
+
+                    // Reading Raw Directory Table Structure
+                    // We need to do manual parsing because System.Reflection.Metadata doesn't expose raw exports easily without PInvoke or headers
+                    // Implementing a mini-parser using BinaryReader on the stream relative to offsets
+
+                    using (var reader = new BinaryReader(fs, Encoding.ASCII, true))
+                    {
+                        // Skip Characteristics(4), TimeDateStamp(4), Major(2), Minor(2), Name(4), Base(4)
+                        reader.BaseStream.Seek(20, SeekOrigin.Current);
+                        uint numberOfFunctions = reader.ReadUInt32();
+                        uint numberOfNames = reader.ReadUInt32();
+                        uint addressOfFunctionsRva = reader.ReadUInt32();
+                        uint addressOfNamesRva = reader.ReadUInt32();
+                        uint addressOfNameOrdinalsRva = reader.ReadUInt32();
+
+                        // We need to map RVAs to File Offsets
+                        long funcTableOffset = peReader.PEHeaders.GetOffset((int)addressOfFunctionsRva);
+                        long nameTableOffset = peReader.PEHeaders.GetOffset((int)addressOfNamesRva);
+                        long ordinalTableOffset = peReader.PEHeaders.GetOffset((int)addressOfNameOrdinalsRva);
+
+                        // This is a simplified parser. It may break on highly obfuscated files, but standard system DLLs work.
+
+                        // Map Names to Ordinals, then Ordinals to Functions
+                        // Note: Export RVA = FunctionTable[Ordinal]
+
+                        // 1. Read all ordinals and names
+                        var nameToOrdinal = new Dictionary<int, ushort>(); // Index -> Ordinal
+
+                        // Read Names
+                        for (int i = 0; i < numberOfNames; i++)
+                        {
+                            reader.BaseStream.Position = nameTableOffset + (i * 4);
+                            uint nameRva = reader.ReadUInt32();
+
+                            reader.BaseStream.Position = ordinalTableOffset + (i * 2);
+                            ushort ordinal = reader.ReadUInt16(); // This is the biased ordinal index into AddressOfFunctions
+
+                            long stringOffset = peReader.PEHeaders.GetOffset((int)nameRva);
+                            if (stringOffset > 0)
+                            {
+                                reader.BaseStream.Position = stringOffset;
+                                // Read null term string
+                                string funcName = ReadNullTerminatedString(reader);
+
+                                // Get RVA
+                                reader.BaseStream.Position = funcTableOffset + (ordinal * 4);
+                                uint funcRva = reader.ReadUInt32();
+
+                                if (!exports.ContainsKey(funcRva))
+                                {
+                                    exports.Add(funcRva, funcName);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("Disk Export Parse Error: " + ex.Message);
+            }
+            return exports;
+        }
+
+        private string ReadNullTerminatedString(BinaryReader reader)
+        {
+            var sb = new StringBuilder();
+            char c;
+            while ((c = reader.ReadChar()) != '\0')
+            {
+                sb.Append(c);
+            }
+            return sb.ToString();
+        }
+
         private Dictionary<uint, string> ParseExportsFromMemory(Operations.KERNEL_MODULE_INFO module)
         {
             var exports = new Dictionary<uint, string>();
-            // CHANGED: Use ulong for base address to avoid 32-bit overflow
             ulong baseAddr = module.BaseAddress;
 
             var dosHeader = ReadStruct<NativePEStructs.IMAGE_DOS_HEADER>(baseAddr);
             if (dosHeader.e_magic[0] != 'M' || dosHeader.e_magic[1] != 'Z') return exports;
 
-            // Use ulong arithmetic
             ulong ntHeaderPtr = baseAddr + (ulong)dosHeader.e_lfanew;
 
             int signature = ReadInt32(ntHeaderPtr);
@@ -185,7 +291,6 @@ namespace KsDumper11.PE
             return exports;
         }
 
-        // CHANGED: All Read helpers now take ulong address
         private T ReadStruct<T>(ulong address) where T : struct
         {
             IntPtr buffer = MarshalUtility.AllocEmptyStruct<T>();

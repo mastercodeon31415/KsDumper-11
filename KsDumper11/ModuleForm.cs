@@ -1,4 +1,4 @@
-﻿// Relative Path: ModuleForm.cs
+﻿// Relative Path: KsDumper11\ModuleForm.cs
 using DarkControls;
 using KsDumper11.Driver;
 using KsDumper11.PE;
@@ -27,7 +27,7 @@ namespace KsDumper11
             get
             {
                 CreateParams cp = base.CreateParams;
-                cp.ExStyle |= 33554432; // WS_EX_COMPOSITED for anti-flicker
+                cp.ExStyle |= 33554432;
                 return cp;
             }
         }
@@ -54,6 +54,7 @@ namespace KsDumper11
         private void RefreshModules()
         {
             moduleList.Items.Clear();
+            moduleList.BeginUpdate();
             try
             {
                 var modules = _driver.GetProcessModules(_targetProcess.ProcessId);
@@ -62,26 +63,64 @@ namespace KsDumper11
                 {
                     if (mod.BaseAddress == 0) continue;
 
+                    string fullPath = PathUtils.NormalizePath(mod.FullPathName ?? "");
                     string fileName = "Unknown";
-                    string fullPath = mod.FullPathName ?? "";
-                    bool isManualMap = false;
-                    bool isDotNetRuntime = false;
 
-                    // Check for Manual Map (Flagged by Driver)
+                    bool isManualMap = false;
+                    bool isUnlinked = false;
+                    bool isDotNet = false;
+                    bool isInMemoryDotNet = false;
+
+                    string dotNetVersion = "";
+
                     if (fullPath.Contains("ManualMap_Region"))
                     {
-                        fileName = "Manual Map";
+                        fileName = "Manual Map Region";
                         isManualMap = true;
+                    }
+                    else if (fullPath.Contains("Unlinked_Module"))
+                    {
+                        var dnInfo = DotNetResolver.GetDotNetInfo(
+                            _driver,
+                            _targetProcess.ProcessId,
+                            mod.BaseAddress,
+                            mod.SizeOfImage);
+
+                        if (dnInfo.IsValid)
+                        {
+                            fileName = dnInfo.Name + ".dll";
+                            fullPath = $"{fileName} (In-Memory)";
+                            isInMemoryDotNet = true;
+                            isDotNet = true;
+                            dotNetVersion = dnInfo.Version;
+                        }
+                        else
+                        {
+                            fileName = "Unlinked Module";
+                            isUnlinked = true;
+                        }
                     }
                     else if (!string.IsNullOrEmpty(fullPath))
                     {
                         fileName = Path.GetFileName(fullPath);
-
-                        // Check for .NET Runtime DLLs
                         string lowerName = fileName.ToLower();
-                        if (lowerName == "clr.dll" || lowerName == "coreclr.dll" || lowerName == "mscoree.dll")
+
+                        if (lowerName == "mscorlib.dll" || lowerName == "clr.dll" || lowerName == "mscoree.dll" ||
+                            lowerName.StartsWith("system.") || lowerName.StartsWith("microsoft.") || lowerName.EndsWith(".ni.dll"))
                         {
-                            isDotNetRuntime = true;
+                            isDotNet = true;
+                        }
+                        else if (_targetProcess.IsDotNet)
+                        {
+                            if (lowerName != "kernel32.dll" && lowerName != "ntdll.dll" && lowerName != "user32.dll")
+                            {
+                                var dnInfo = DotNetResolver.GetDotNetInfo(_driver, _targetProcess.ProcessId, mod.BaseAddress, mod.SizeOfImage);
+                                if (dnInfo.IsValid)
+                                {
+                                    isDotNet = true;
+                                    dotNetVersion = dnInfo.Version;
+                                }
+                            }
                         }
                     }
 
@@ -90,20 +129,35 @@ namespace KsDumper11
                     item.SubItems.Add($"0x{mod.SizeOfImage:X}");
                     item.SubItems.Add(fullPath);
 
-                    // Color Coding
                     if (isManualMap)
                     {
                         item.ForeColor = Color.Red;
-                        item.ToolTipText = "Detected via Memory Scan (VAD)";
+                        item.ToolTipText = "Region found via VAD Scan";
                     }
-                    else if (isDotNetRuntime)
+                    else if (isInMemoryDotNet)
+                    {
+                        item.ForeColor = Color.LimeGreen;
+                        item.ToolTipText = $"In-Memory .NET Assembly ({dotNetVersion})";
+                    }
+                    else if (isUnlinked)
+                    {
+                        item.ForeColor = Color.Orange;
+                        item.ToolTipText = "Unlinked Native PE Module";
+                    }
+                    else if (isDotNet)
                     {
                         item.ForeColor = Color.Cyan;
-                        item.ToolTipText = ".NET Runtime Module";
+                        if (!string.IsNullOrEmpty(dotNetVersion))
+                            item.ToolTipText = $".NET Managed Assembly ({dotNetVersion})";
+                    }
+                    else
+                    {
+                        item.ForeColor = Color.Silver;
                     }
 
-                    // Tag the item with the raw module info for dumping
-                    item.Tag = mod;
+                    var fixedModInfo = mod;
+                    fixedModInfo.FullPathName = fullPath;
+                    item.Tag = fixedModInfo;
 
                     moduleList.Items.Add(item);
                 }
@@ -111,6 +165,10 @@ namespace KsDumper11
             catch (Exception ex)
             {
                 MessageBox.Show("Error enumerating modules: " + ex.Message);
+            }
+            finally
+            {
+                moduleList.EndUpdate();
             }
         }
 
@@ -131,20 +189,21 @@ namespace KsDumper11
             var item = moduleList.SelectedItems[0];
             var modInfo = (KsDumper11.Driver.Operations.KERNEL_MODULE_INFO)item.Tag;
 
-            // Create a temporary ProcessSummary to trick the ProcessDumper
             string fullPath = modInfo.FullPathName;
-            if (string.IsNullOrEmpty(fullPath) || fullPath.Contains("ManualMap_Region"))
+            if (string.IsNullOrEmpty(fullPath) || fullPath.Contains("Unlinked_") || fullPath.Contains("ManualMap_") || fullPath.Contains("(In-Memory)"))
                 fullPath = item.Text;
 
-            // Note: We pass isDotNet=false here for the module dump itself as it treats it as a generic PE
+            // Check if we detected this specific module as .NET (Cyan or Green color)
+            bool isDotNetModule = (item.ForeColor == Color.Cyan || item.ForeColor == Color.LimeGreen);
+
             ProcessSummary moduleSummary = new ProcessSummary(
                 _targetProcess.ProcessId,
                 modInfo.BaseAddress,
                 fullPath,
                 modInfo.SizeOfImage,
-                0, // EntryPoint unknown for modules via this method usually
-                _targetProcess.IsWOW64, // Inherit architecture
-                false
+                0,
+                _targetProcess.IsWOW64,
+                isDotNetModule // Pass true if .NET to help dumper logic
             );
 
             Task.Run(() =>
@@ -152,7 +211,6 @@ namespace KsDumper11
                 Logger.Log($"Dumping module {item.Text} (Base: 0x{modInfo.BaseAddress:X})...");
                 PEFile peFile;
 
-                // ProcessDumper will now use IATReconstructor which handles in-memory export resolution
                 if (_dumper.DumpProcess(moduleSummary, out peFile))
                 {
                     this.Invoke(new Action(() =>
@@ -160,9 +218,11 @@ namespace KsDumper11
                         using (SaveFileDialog sfd = new SaveFileDialog())
                         {
                             string safeName = Path.GetFileNameWithoutExtension(item.Text);
-                            if (string.IsNullOrEmpty(safeName)) safeName = $"Module_{modInfo.BaseAddress:X}";
+                            if (string.IsNullOrEmpty(safeName) || safeName.Contains(" ")) safeName = $"Module_{modInfo.BaseAddress:X}";
 
-                            sfd.FileName = safeName + "_dump.dll";
+                            string ext = "dll"; // Default extension
+
+                            sfd.FileName = safeName + "_dump." + ext;
                             sfd.Filter = "DLL File (*.dll)|*.dll|Executable File (*.exe)|*.exe|All Files (*.*)|*.*";
 
                             if (sfd.ShowDialog() == DialogResult.OK)
@@ -184,19 +244,15 @@ namespace KsDumper11
             });
         }
 
+        // ... (CopyAddress and WndProc unchanged)
         private void copyAddressToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (moduleList.SelectedItems.Count > 0)
-            {
-                Clipboard.SetText(moduleList.SelectedItems[0].SubItems[1].Text);
-            }
+            if (moduleList.SelectedItems.Count > 0) Clipboard.SetText(moduleList.SelectedItems[0].SubItems[1].Text);
         }
-
         protected override void WndProc(ref Message m)
         {
             base.WndProc(ref m);
-            if (m.Msg == Utils.WM_NCHITTEST)
-                m.Result = (IntPtr)Utils.HT_CAPTION;
+            if (m.Msg == Utils.WM_NCHITTEST) m.Result = (IntPtr)Utils.HT_CAPTION;
         }
     }
 }

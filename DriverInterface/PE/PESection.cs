@@ -1,4 +1,7 @@
-﻿using System.IO;
+﻿// Relative Path: PE\PESection.cs
+using System; // Added for Array/Math
+using System.IO;
+using System.Text; // Added for Encoding
 
 using static KsDumper11.PE.NativePEStructs;
 
@@ -32,14 +35,23 @@ namespace KsDumper11.PE
 
             public ushort NumberOfRelocations { get; set; }
 
-            public ushort NumberOfLinenumbers { get; set; } 
+            public ushort NumberOfLinenumbers { get; set; }
 
             public DataSectionFlags Characteristics { get; set; }
 
 
             public void AppendToStream(BinaryWriter writer)
             {
-                writer.Write(Name.ToCharArray());
+                // FIX: Ensure Section Name is exactly 8 bytes
+                byte[] nameBytes = new byte[8];
+                if (!string.IsNullOrEmpty(Name))
+                {
+                    byte[] source = Encoding.UTF8.GetBytes(Name);
+                    int len = Math.Min(source.Length, 8);
+                    Array.Copy(source, nameBytes, len);
+                }
+                writer.Write(nameBytes);
+
                 writer.Write(VirtualSize);
                 writer.Write(VirtualAddress);
                 writer.Write(SizeOfRawData);
@@ -68,5 +80,5 @@ namespace KsDumper11.PE
                 };
             }
         }
-    }   
+    }
 }

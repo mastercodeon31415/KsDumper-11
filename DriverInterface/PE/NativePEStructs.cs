@@ -1,4 +1,5 @@
-﻿using System;
+﻿// Relative Path: PE\NativePEStructs.cs
+using System;
 using System.Runtime.InteropServices;
 
 namespace KsDumper11.PE
@@ -25,6 +26,24 @@ namespace KsDumper11.PE
         public const uint IMAGE_DIRECTORY_ENTRY_IAT = 12;
         public const uint IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT = 13;
         public const uint IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR = 14;
+
+        // Added: CLR Header Structure for .NET Fixes
+        [StructLayout(LayoutKind.Sequential)]
+        public struct IMAGE_COR20_HEADER
+        {
+            public uint cb;
+            public ushort MajorRuntimeVersion;
+            public ushort MinorRuntimeVersion;
+            public IMAGE_DATA_DIRECTORY MetaData;
+            public uint Flags;
+            public uint EntryPointToken;
+            public IMAGE_DATA_DIRECTORY Resources;
+            public IMAGE_DATA_DIRECTORY StrongNameSignature;
+            public IMAGE_DATA_DIRECTORY CodeManagerTable;
+            public IMAGE_DATA_DIRECTORY VTableFixups;
+            public IMAGE_DATA_DIRECTORY ExportAddressTableJumps;
+            public IMAGE_DATA_DIRECTORY ManagedNativeHeader;
+        }
 
         [StructLayout(LayoutKind.Sequential)]
         public struct IMAGE_DOS_HEADER
